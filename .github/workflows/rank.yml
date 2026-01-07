@@ -1,0 +1,40 @@
+name: 네이버 플레이스 순위 체크
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  check-rank:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+      
+      - name: Python 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Chrome 설치
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+      
+      - name: 의존성 설치
+        run: pip install -r requirements.txt
+      
+      - name: 순위 체크 실행
+        run: python rank.py
+        env:
+          GITHUB_ACTIONS: true
+      
+      - name: 결과 커밋
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add keyword.xlsx
+          git diff --staged --quiet || git commit -m "🔄 순위 업데이트 $(date +'%Y-%m-%d')"
+          git push
