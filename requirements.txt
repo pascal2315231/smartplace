@@ -2,4 +2,4 @@ selenium
 openpyxl
 webdriver-manager
 pyperclip
-
+requests
