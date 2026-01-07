@@ -7,8 +7,37 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from openpyxl import load_workbook
 from datetime import datetime
+import requests
 import time
 import os
+
+def send_telegram_message(message):
+    """텔레그램으로 메시지 전송"""
+    token = os.environ.get('TELEGRAM_TOKEN')
+    chat_id = os.environ.get('TELEGRAM_CHAT_ID')
+    
+    if not token or not chat_id:
+        print("  ⚠️ 텔레그램 환경변수가 설정되지 않았습니다.")
+        return False
+    
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    data = {
+        "chat_id": chat_id,
+        "text": message,
+        "parse_mode": "HTML"
+    }
+    
+    try:
+        response = requests.post(url, data=data)
+        if response.status_code == 200:
+            print("  📨 텔레그램 알림 전송 완료!")
+            return True
+        else:
+            print(f"  ⚠️ 텔레그램 전송 실패: {response.text}")
+            return False
+    except Exception as e:
+        print(f"  ⚠️ 텔레그램 전송 오류: {e}")
+        return False
 
 def is_my_store(name, my_store_name):
     """띄어쓰기 무시하고 부분 문자열 매칭으로 우리 가게인지 확인"""
@@ -233,9 +262,25 @@ try:
         if rank:
             rank_text = f"{rank}위"
             print(f"  ✅ 결과: {rank}위 (검색된 상호: {found_name})")
+            
+            # 텔레그램 알림 전송
+            message = f"🏪 <b>네이버 플레이스 순위 알림</b>\n\n"
+            message += f"📅 날짜: {today}\n"
+            message += f"🔍 키워드: {keyword}\n"
+            message += f"🏬 상호명: {found_name}\n"
+            message += f"🏆 순위: <b>{rank}위</b>"
+            send_telegram_message(message)
         else:
             rank_text = "순위없음"
             print(f"  ❌ 결과: 순위없음 (5페이지 내 미발견)")
+            
+            # 순위 없음도 알림 전송
+            message = f"🏪 <b>네이버 플레이스 순위 알림</b>\n\n"
+            message += f"📅 날짜: {today}\n"
+            message += f"🔍 키워드: {keyword}\n"
+            message += f"🏬 상호명: {store_name}\n"
+            message += f"❌ 순위: <b>5페이지 내 미발견</b>"
+            send_telegram_message(message)
         
         results.append({
             'keyword': keyword,
