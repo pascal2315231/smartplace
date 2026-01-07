@@ -32,11 +32,4 @@ jobs:
           GITHUB_ACTIONS: true
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-      
-      - name: 결과 커밋
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add keyword.xlsx
-          git diff --staged --quiet || git commit -m "🔄 순위 업데이트 $(date +'%Y-%m-%d')"
-          git push
+  
